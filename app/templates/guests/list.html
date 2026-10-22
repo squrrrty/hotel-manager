@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Гости — HotelManager{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+<p class="eyebrow">ГОСТЕВАЯ БАЗА</p>
+<h1>Гости</h1>
+<p class="text-muted mb-0">Контакты под рукой — больше внимания каждому гостю.</p>
+</div>
+    <a class="btn btn-primary" href="{{ url_for('guests.create_guest') }}">+ Добавить гостя</a>
+</div>
+
+<form method="get" class="filters">
+<div class="flex-grow-1">
+<label for="guest-search">Найти гостя</label>
+<input type="search" id="guest-search" class="form-control" name="q" value="{{ request.args.get('q', '') }}" placeholder="Имя, телефон или email">
+</div>
+<button class="btn btn-primary">Найти</button>
+<a class="btn btn-secondary" href="{{ url_for('guests.list_guests') }}">Сбросить</a>
+</form>
+<p class="small text-muted">Найдено гостей: {{ guests|length }}</p>
+{% if guests %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Паспорт</th>
+            <th>Телефон</th>
+            <th>Email</th>
+            <th class="text-end">Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for guest in guests %}
+        <tr>
+            <td>
+<strong>{{ guest.full_name }}</strong>
+</td>
+            <td>{{ guest.passport or '—' }}</td>
+            <td>{{ guest.phone or '—' }}</td>
+            <td>{{ guest.email or '—' }}</td>
+            <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('guests.edit_guest', guest_id=guest.id) }}">Изменить</a>
+                <form method="post" action="{{ url_for('guests.delete_guest', guest_id=guest.id) }}" class="d-inline" onsubmit="return confirm('Удалить этого гостя?');">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div class="alert alert-info">Гости не найдены. Попробуйте другой запрос или добавьте гостя.</div>
+{% endif %}
+{% endblock %}

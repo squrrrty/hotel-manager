@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Номера — HotelManager{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+<p class="eyebrow">НОМЕРНОЙ ФОНД</p>
+<h1>Номера</h1>
+<p class="text-muted mb-0">Подберите номер на даты проживания и проверьте его готовность.</p>
+</div>
+    <a class="btn btn-primary" href="{{ url_for('rooms.create_room') }}">+ Добавить номер</a>
+</div>
+
+<form method="get" class="filters">
+<div>
+<label for="filter-start">Заезд</label>
+<input id="filter-start" type="date" name="check_in" class="form-control" value="{{ request.args.get('check_in', '') }}">
+</div>
+<div>
+<label for="filter-end">Выезд</label>
+<input id="filter-end" type="date" name="check_out" class="form-control" value="{{ request.args.get('check_out', '') }}">
+</div>
+<div>
+<label for="filter-status">Текущий статус</label>
+<select id="filter-status" name="status" class="form-select">
+<option value="">Все статусы</option>{% for value, label in [('free','Свободен'),('occupied','Занят'),('cleaning','На уборке'),('repair','Ремонт')] %}<option value="{{ value }}" {% if request.args.get('status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+</div>
+<button class="btn btn-primary">Подобрать номера</button>
+<a class="btn btn-secondary" href="{{ url_for('rooms.list_rooms') }}">Сбросить</a>
+<p class="small text-muted mb-0 w-100">Даты проверяют бронирования; статус показывает готовность номера сейчас. Номера на ремонте исключены из подбора по датам.</p>
+</form>
+<p class="small text-muted">Найдено номеров: {{ rooms|length }}</p>
+{% if rooms %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+    <thead>
+        <tr>
+            <th>Номер</th>
+            <th>Категория</th>
+            <th>Этаж</th>
+            <th>Вместимость</th>
+            <th>Цена / ночь</th>
+            <th>Статус</th>
+            <th class="text-end">Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in rooms %}
+        <tr>
+            <td>
+<strong>{{ room.number }}</strong>
+</td>
+            <td>{{ room.category.name }}</td>
+            <td>{{ room.floor or '—' }}</td>
+            <td>{{ room.category.capacity }} чел.</td>
+            <td>{{ room.category.base_price }} TJS</td>
+            <td>
+                {% if room.status == 'free' %}<span class="badge bg-success">Свободен</span>
+                {% elif room.status == 'occupied' %}<span class="badge bg-danger">Занят</span>
+                {% elif room.status == 'cleaning' %}<span class="badge bg-warning text-dark">На уборке</span>
+                {% else %}<span class="badge bg-secondary">Ремонт</span>{% endif %}
+            </td>
+            <td>
+<div class="actions">
+{% if room.status == 'cleaning' %}<form method="post" action="{{ url_for('rooms.ready', room_id=room.id) }}">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<button class="btn btn-sm btn-outline-primary">Уборка завершена</button>
+</form>{% endif %}
+{% if request.args.get('check_in') and request.args.get('check_out') %}<a class="btn btn-sm btn-primary" href="{{ url_for('bookings.create', room_id=room.id, check_in=request.args.get('check_in'), check_out=request.args.get('check_out')) }}">Забронировать</a>{% endif %}
+                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('rooms.edit_room', room_id=room.id) }}">Изменить</a>
+                <form method="post" action="{{ url_for('rooms.delete_room', room_id=room.id) }}" class="d-inline" onsubmit="return confirm('Удалить этот номер?');">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                </form>
+            </div>
+</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div class="alert alert-info">Номера не найдены. Измените фильтры или добавьте новый номер.</div>
+{% endif %}
+{% endblock %}

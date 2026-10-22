@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}HotelManager — забота о гостях{% endblock %}{% block content %}<section class="welcome">
+<p class="eyebrow">ВАШ ОТЕЛЬ. ОДНО ПРОСТРАНСТВО.</p>
+<h1>Хороший сервис<br>начинается с порядка.</h1>
+<p>Бронирования, гости и номерной фонд —<br>всё под контролем вашей команды.</p>
+<a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}">Войти в систему →</a>
+<div class="welcome-features">
+<span>01 / Бронирования</span>
+<span>02 / Номера</span>
+<span>03 / Гости</span>
+</div>
+</section>{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Брони — HotelManager{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+<p class="eyebrow">РАЗМЕЩЕНИЕ ГОСТЕЙ</p>
+<h1>Бронирования</h1>
+<p class="text-muted mb-0">От первой заявки до выезда — весь процесс в одном списке.</p>
+</div>
+    <a class="btn btn-primary" href="{{ url_for('bookings.create') }}">+ Создать бронь</a>
+</div>
+
+<form method="get" class="filters">
+<div>
+<label for="booking-status">Статус брони</label>
+<select class="form-select" name="status" id="booking-status">
+<option value="">Все брони</option>{% for value, label in [('created','Создана'),('confirmed','Подтверждена'),('checked_in','В отеле'),('checked_out','Завершена'),('cancelled','Отменена')] %}<option value="{{ value }}" {% if request.args.get('status') == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+</div>
+<button class="btn btn-primary">Показать</button>
+<a class="btn btn-secondary" href="{{ url_for('bookings.list_bookings') }}">Сбросить</a>
+</form>
+<p class="small text-muted">Найдено броней: {{ bookings|length }} · Стоимость — ориентир по текущему тарифу, без дополнительных услуг.</p>
+{% if bookings %}
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Гость</th>
+            <th>Номер</th>
+            <th>Заезд</th>
+            <th>Выезд</th>
+            <th>Оценка стоимости</th>
+<th>Статус</th>
+            <th class="text-end">Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for b in bookings %}
+        <tr>
+            <td>#{{ b.id }}</td>
+            <td>{{ b.guest.full_name }}</td>
+            <td>
+<strong>{{ b.room.number }}</strong> ({{ b.room.category.name }})</td>
+            <td>{{ b.check_in.strftime('%d.%m.%Y') }}</td>
+            <td>{{ b.check_out.strftime('%d.%m.%Y') }}</td>
+            <td>
+<strong>{{ '%.2f'|format(b.estimated_total) }} TJS</strong>
+<small class="cell-note">Ночей: {{ b.nights }}</small>
+</td>
+            <td>
+                {% include 'bookings/status.html' %}
+            </td>
+            <td class="text-end">
+                {% if b.status in ['created', 'confirmed'] %}
+                    <form method="post" action="{{ url_for('bookings.check_in', booking_id=b.id) }}" class="d-inline">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-success">Заселить</button>
+                    </form>
+                    <form method="post" action="{{ url_for('bookings.cancel', booking_id=b.id) }}" class="d-inline" onsubmit="return confirm('Отменить бронь #{{ b.id }}?');">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-outline-danger">Отменить</button>
+                    </form>
+                
+                {% elif b.status == 'checked_in' %}
+                    <form method="post" action="{{ url_for('bookings.check_out', booking_id=b.id) }}" class="d-inline">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-warning">Оформить выезд</button>
+                    </form>
+                
+                {% else %}
+                    <span class="text-muted small">Нет действий</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<div class="alert alert-info">Бронирования не найдены. Измените фильтр или создайте новую бронь.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Редактировать номер' if room else 'Новый номер' }} — HotelManager{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title mb-4">{{ 'Редактировать номер' if room else 'Новый номер' }}</h3>
+
+                <form method="post">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="number">Номер</label>
+                        <input id="number" type="text" name="number" class="form-control" required
+                               value="{{ request.form.get('number', room.number if room else '') }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="category_id">Категория</label>
+                        <select id="category_id" name="category_id" class="form-select" required>
+                            {% for c in categories %}
+                                <option value="{{ request.form.get('category_id', c.id) }}" {% if request.form.get('category_id', room.category_id|string if room else '') == c.id|string %}selected{% endif %}>
+                                    {{ c.name }} — {{ c.capacity }} чел. — {{ c.base_price }} TJS
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="floor">Этаж</label>
+                        <input id="floor" type="number" name="floor" class="form-control"
+                               value="{{ request.form.get('floor', room.floor if room and room.floor else '') }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="status">Статус</label>
+                        <select id="status" name="status" class="form-select">
+                            <option value="free"     {% if request.form.get('status', room.status if room else 'free') == 'free' %}selected{% endif %}>Свободен</option>
+                            <option {% if not room or room.status != "occupied" %}disabled{% endif %} value="occupied" {% if request.form.get('status', room.status if room else 'free') == 'occupied' %}selected{% endif %}>Занят</option>
+                            <option value="cleaning" {% if request.form.get('status', room.status if room else 'free') == 'cleaning' %}selected{% endif %}>На уборке</option>
+                            <option value="repair"   {% if request.form.get('status', room.status if room else 'free') == 'repair' %}selected{% endif %}>Ремонт</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a class="btn btn-secondary" href="{{ url_for('rooms.list_rooms') }}">Назад</a>
+                        <button class="btn btn-primary" type="submit">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

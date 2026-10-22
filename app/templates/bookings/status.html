@@ -1,0 +1,1 @@
+{% set labels = {'created':'Создана','confirmed':'Подтверждена','checked_in':'В отеле','checked_out':'Завершена','cancelled':'Отменена'} %}<span class="status-badge {{ b.status }}">{{ labels.get(b.status, b.status) }}</span>
